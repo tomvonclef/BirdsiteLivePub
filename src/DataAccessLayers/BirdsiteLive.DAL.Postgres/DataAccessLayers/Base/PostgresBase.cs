@@ -1,25 +1,24 @@
 ﻿using BirdsiteLive.DAL.Postgres.Settings;
 using Npgsql;
 
-namespace BirdsiteLive.DAL.Postgres.DataAccessLayers.Base
+namespace BirdsiteLive.DAL.Postgres.DataAccessLayers.Base;
+
+public class PostgresBase
 {
-    public class PostgresBase
+    protected readonly PostgresSettings _settings;
+
+    #region Ctor
+    protected PostgresBase(PostgresSettings settings)
     {
-        protected readonly PostgresSettings _settings;
+        _settings = settings;
+    }
+    #endregion
 
-        #region Ctor
-        protected PostgresBase(PostgresSettings settings)
+    protected NpgsqlConnection Connection
+    {
+        get
         {
-            _settings = settings;
-        }
-        #endregion
-
-        protected NpgsqlConnection Connection
-        {
-            get
-            {
-                return new NpgsqlConnection(_settings.ConnString);
-            }
+            return new NpgsqlConnection(_settings.ConnString);
         }
     }
 }

@@ -1,41 +1,40 @@
 ﻿using System.IO;
 using BirdsiteLive.Cryptography;
 
-namespace BirdsiteLive.Domain.Factories
+namespace BirdsiteLive.Domain.Factories;
+
+public interface IMagicKeyFactory
 {
-    public interface IMagicKeyFactory
-    {
-        MagicKey GetMagicKey();
-    }
+    MagicKey GetMagicKey();
+}
 
-    public class MagicKeyFactory : IMagicKeyFactory
-    {
-        private const string Path = "key.json";
-        private static MagicKey _magicKey;
+public class MagicKeyFactory : IMagicKeyFactory
+{
+    private const string Path = "key.json";
+    private static MagicKey _magicKey;
 
-        #region Ctor
-        public MagicKeyFactory()
-        {
+    #region Ctor
+    public MagicKeyFactory()
+    {
             
-        }
-        #endregion
+    }
+    #endregion
 
-        public MagicKey GetMagicKey()
+    public MagicKey GetMagicKey()
+    {
+        //Cached key
+        if (_magicKey != null) return _magicKey;
+
+        //Generate key if needed
+        if (!File.Exists(Path))
         {
-            //Cached key
-            if (_magicKey != null) return _magicKey;
-
-            //Generate key if needed
-            if (!File.Exists(Path))
-            {
-                var key = MagicKey.Generate();
-                File.WriteAllText(Path, key.PrivateKey);
-            }
-
-            //Load and return key
-            var serializedKey = File.ReadAllText(Path);
-            _magicKey = new MagicKey(serializedKey);
-            return _magicKey;
+            var key = MagicKey.Generate();
+            File.WriteAllText(Path, key.PrivateKey);
         }
+
+        //Load and return key
+        var serializedKey = File.ReadAllText(Path);
+        _magicKey = new MagicKey(serializedKey);
+        return _magicKey;
     }
 }

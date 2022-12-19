@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace BirdsiteLive.Domain
+namespace BirdsiteLive.Domain;
+
+public class FollowerIsGoneException : Exception
 {
-    public class FollowerIsGoneException : Exception
-    {
-    }
 }

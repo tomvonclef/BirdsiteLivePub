@@ -1,7 +1,6 @@
-﻿namespace BirdsiteLive.ActivityPub
+﻿namespace BirdsiteLive.ActivityPub;
+
+public class EndPoints
 {
-    public class EndPoints
-    {
-        public string sharedInbox { get; set; }
-    }
+    public string sharedInbox { get; set; }
 }

@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace BirdsiteLive.ActivityPub
+namespace BirdsiteLive.ActivityPub;
+
+public class ActivityUndo : Activity
 {
-    public class ActivityUndo : Activity
-    {
-        [JsonProperty("object")]
-        public Activity apObject { get; set; }
-    }
+    [JsonProperty("object")]
+    public Activity apObject { get; set; }
 }

@@ -4,59 +4,58 @@ using BirdsiteLive.Common.Settings;
 using Microsoft.Extensions.Logging;
 using Tweetinvi;
 
-namespace BirdsiteLive.Twitter.Tools
+namespace BirdsiteLive.Twitter.Tools;
+
+public interface ITwitterAuthenticationInitializer
 {
-    public interface ITwitterAuthenticationInitializer
+    void EnsureAuthenticationIsInitialized();
+}
+
+public class TwitterAuthenticationInitializer : ITwitterAuthenticationInitializer
+{
+    private readonly TwitterSettings _settings;
+    private readonly ILogger<TwitterAuthenticationInitializer> _logger;
+    private static bool _initialized;
+    private readonly SemaphoreSlim _semaphoregate = new SemaphoreSlim(1);
+
+    #region Ctor
+    public TwitterAuthenticationInitializer(TwitterSettings settings, ILogger<TwitterAuthenticationInitializer> logger)
     {
-        void EnsureAuthenticationIsInitialized();
+        _settings = settings;
+        _logger = logger;
     }
+    #endregion
 
-    public class TwitterAuthenticationInitializer : ITwitterAuthenticationInitializer
+    public void EnsureAuthenticationIsInitialized()
     {
-        private readonly TwitterSettings _settings;
-        private readonly ILogger<TwitterAuthenticationInitializer> _logger;
-        private static bool _initialized;
-        private readonly SemaphoreSlim _semaphoregate = new SemaphoreSlim(1);
-
-        #region Ctor
-        public TwitterAuthenticationInitializer(TwitterSettings settings, ILogger<TwitterAuthenticationInitializer> logger)
-        {
-            _settings = settings;
-            _logger = logger;
-        }
-        #endregion
-
-        public void EnsureAuthenticationIsInitialized()
+        if (_initialized) return;
+        _semaphoregate.Wait();
+           
+        try
         {
             if (_initialized) return;
-            _semaphoregate.Wait();
-           
+            InitTwitterCredentials();
+        }
+        finally
+        {
+            _semaphoregate.Release();
+        }
+    }
+
+    private void InitTwitterCredentials()
+    {
+        for (;;)
+        {
             try
             {
-                if (_initialized) return;
-                InitTwitterCredentials();
+                Auth.SetApplicationOnlyCredentials(_settings.ConsumerKey, _settings.ConsumerSecret, true);
+                _initialized = true;
+                return;
             }
-            finally
+            catch (Exception e)
             {
-                _semaphoregate.Release();
-            }
-        }
-
-        private void InitTwitterCredentials()
-        {
-            for (;;)
-            {
-                try
-                {
-                    Auth.SetApplicationOnlyCredentials(_settings.ConsumerKey, _settings.ConsumerSecret, true);
-                    _initialized = true;
-                    return;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Twitter Authentication Failed");
-                    Thread.Sleep(250);
-                }
+                _logger.LogError(e, "Twitter Authentication Failed");
+                Thread.Sleep(250);
             }
         }
     }

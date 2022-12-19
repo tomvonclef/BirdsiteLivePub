@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace BirdsiteLive.ActivityPub
+namespace BirdsiteLive.ActivityPub;
+
+public class ActivityAcceptFollow : Activity
 {
-    public class ActivityAcceptFollow : Activity
-    {
-        [JsonProperty("object")]
-        public ActivityFollow apObject { get; set; }
-    }
+    [JsonProperty("object")]
+    public ActivityFollow apObject { get; set; }
 }

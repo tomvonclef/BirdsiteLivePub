@@ -1,9 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace BirdsiteLive.Common.Regexes
+namespace BirdsiteLive.Common.Regexes;
+
+public class HeaderRegexes
 {
-    public class HeaderRegexes
-    {
-        public static readonly Regex HeaderSignature = new Regex(@"^([a-zA-Z0-9]+)=""(.+)""$");
-    }
+    public static readonly Regex HeaderSignature = new(@"^([a-zA-Z0-9]+)=""(.+)""$");
 }

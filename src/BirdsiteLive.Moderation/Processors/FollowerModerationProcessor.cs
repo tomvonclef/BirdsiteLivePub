@@ -4,45 +4,44 @@ using BirdsiteLive.DAL.Contracts;
 using BirdsiteLive.Domain.Repository;
 using BirdsiteLive.Moderation.Actions;
 
-namespace BirdsiteLive.Moderation.Processors
+namespace BirdsiteLive.Moderation.Processors;
+
+public interface IFollowerModerationProcessor
 {
-    public interface IFollowerModerationProcessor
+    Task ProcessAsync(ModerationTypeEnum type);
+}
+
+public class FollowerModerationProcessor : IFollowerModerationProcessor
+{
+    private readonly IFollowersDal _followersDal;
+    private readonly IModerationRepository _moderationRepository;
+    private readonly IRemoveFollowerAction _removeFollowerAction;
+
+    #region Ctor
+    public FollowerModerationProcessor(IFollowersDal followersDal, IModerationRepository moderationRepository, IRemoveFollowerAction removeFollowerAction)
     {
-        Task ProcessAsync(ModerationTypeEnum type);
+        _followersDal = followersDal;
+        _moderationRepository = moderationRepository;
+        _removeFollowerAction = removeFollowerAction;
     }
+    #endregion
 
-    public class FollowerModerationProcessor : IFollowerModerationProcessor
+    public async Task ProcessAsync(ModerationTypeEnum type)
     {
-        private readonly IFollowersDal _followersDal;
-        private readonly IModerationRepository _moderationRepository;
-        private readonly IRemoveFollowerAction _removeFollowerAction;
+        if (type == ModerationTypeEnum.None) return;
 
-        #region Ctor
-        public FollowerModerationProcessor(IFollowersDal followersDal, IModerationRepository moderationRepository, IRemoveFollowerAction removeFollowerAction)
+        var followers = await _followersDal.GetAllFollowersAsync();
+
+        foreach (var follower in followers)
         {
-            _followersDal = followersDal;
-            _moderationRepository = moderationRepository;
-            _removeFollowerAction = removeFollowerAction;
-        }
-        #endregion
+            var followerHandle = $"@{follower.Acct.Trim()}@{follower.Host.Trim()}".ToLowerInvariant();
+            var status = _moderationRepository.CheckStatus(ModerationEntityTypeEnum.Follower, followerHandle);
 
-        public async Task ProcessAsync(ModerationTypeEnum type)
-        {
-            if (type == ModerationTypeEnum.None) return;
-
-            var followers = await _followersDal.GetAllFollowersAsync();
-
-            foreach (var follower in followers)
+            if (type == ModerationTypeEnum.WhiteListing && status != ModeratedTypeEnum.WhiteListed ||
+                type == ModerationTypeEnum.BlackListing && status == ModeratedTypeEnum.BlackListed)
             {
-                var followerHandle = $"@{follower.Acct.Trim()}@{follower.Host.Trim()}".ToLowerInvariant();
-                var status = _moderationRepository.CheckStatus(ModerationEntityTypeEnum.Follower, followerHandle);
-
-                if (type == ModerationTypeEnum.WhiteListing && status != ModeratedTypeEnum.WhiteListed ||
-                    type == ModerationTypeEnum.BlackListing && status == ModeratedTypeEnum.BlackListed)
-                {
-                    Console.WriteLine($"Remove {followerHandle}");
-                    await _removeFollowerAction.ProcessAsync(follower);
-                }
+                Console.WriteLine($"Remove {followerHandle}");
+                await _removeFollowerAction.ProcessAsync(follower);
             }
         }
     }

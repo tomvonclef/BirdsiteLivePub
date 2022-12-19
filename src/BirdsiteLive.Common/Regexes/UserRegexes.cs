@@ -1,10 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace BirdsiteLive.Common.Regexes
+namespace BirdsiteLive.Common.Regexes;
+
+public class UserRegexes
 {
-    public class UserRegexes
-    {
-        public static readonly Regex TwitterAccount = new Regex(@"^[a-zA-Z0-9_]+$");
-        public static readonly Regex Mention = new Regex(@"(.?)@([a-zA-Z0-9_]+)(\s|$|[\[\]<>,;:!?/|-]|(. ))");
-    }
+    public static readonly Regex TwitterAccount = new(@"^[a-zA-Z0-9_]+$");
+    public static readonly Regex Mention = new(@"(.?)@([a-zA-Z0-9_]+)(\s|$|[\[\]<>,;:!?/|-]|(. ))");
 }

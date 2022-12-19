@@ -1,7 +1,6 @@
-﻿namespace BirdsiteLive.ActivityPub
+﻿namespace BirdsiteLive.ActivityPub;
+
+public class ActivityCreate
 {
-    public class ActivityCreate
-    {
         
-    }
 }

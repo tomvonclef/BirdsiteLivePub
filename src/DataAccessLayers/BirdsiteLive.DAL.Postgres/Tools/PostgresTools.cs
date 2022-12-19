@@ -3,27 +3,26 @@ using System.Threading.Tasks;
 using BirdsiteLive.DAL.Postgres.Settings;
 using Npgsql;
 
-namespace BirdsiteLive.DAL.Postgres.Tools
+namespace BirdsiteLive.DAL.Postgres.Tools;
+
+public class PostgresTools
 {
-    public class PostgresTools
+    private readonly PostgresSettings _settings;
+
+    #region Ctor
+    public PostgresTools(PostgresSettings settings)
     {
-        private readonly PostgresSettings _settings;
+        _settings = settings;
+    }
+    #endregion
 
-        #region Ctor
-        public PostgresTools(PostgresSettings settings)
+    public async Task ExecuteRequestAsync(string request)
+    {
+        using (var conn = new NpgsqlConnection(_settings.ConnString))
+        using (var cmd = new NpgsqlCommand(request, conn))
         {
-            _settings = settings;
-        }
-        #endregion
-
-        public async Task ExecuteRequestAsync(string request)
-        {
-            using (var conn = new NpgsqlConnection(_settings.ConnString))
-            using (var cmd = new NpgsqlCommand(request, conn))
-            {
-                await conn.OpenAsync();
-                await cmd.ExecuteNonQueryAsync();
-            }
+            await conn.OpenAsync();
+            await cmd.ExecuteNonQueryAsync();
         }
     }
 }

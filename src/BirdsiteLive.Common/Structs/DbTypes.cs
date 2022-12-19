@@ -1,7 +1,6 @@
-﻿namespace BirdsiteLive.Common.Structs
+﻿namespace BirdsiteLive.Common.Structs;
+
+public struct DbTypes
 {
-    public struct DbTypes
-    {
-        public static string Postgres = "postgres";
-    }
+    public static string Postgres = "postgres";
 }
