@@ -1,15 +1,14 @@
 ﻿using System.Reflection;
 using Terminal.Gui;
 
-namespace BSLManager.Tools
+namespace BSLManager.Tools;
+
+public static class ConsoleGui
 {
-    public static class ConsoleGui
+    public static void RefreshUI()
     {
-        public static void RefreshUI()
-        {
-            typeof(Application)
-                .GetMethod("TerminalResized", BindingFlags.Static | BindingFlags.NonPublic)
-                .Invoke(null, null);
-        }
+        var bindingAttr = BindingFlags.Static | BindingFlags.NonPublic;
+        var method = typeof(Application).GetMethod("TerminalResized", bindingAttr);
+        method?.Invoke(null, null);
     }
 }

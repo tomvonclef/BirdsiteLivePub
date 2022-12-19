@@ -5,7 +5,7 @@ using System.Threading;
 using System.Timers;
 using BirdsiteLive.Twitter.Models;
 
-namespace BirdsiteLive.Statistics.Domain
+namespace BirdsiteLive.Twitter.Statistics
 {
     public interface ITwitterStatisticsHandler
     {

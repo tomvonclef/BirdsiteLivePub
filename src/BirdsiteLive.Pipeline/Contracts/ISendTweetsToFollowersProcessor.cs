@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using BirdsiteLive.Pipeline.Models;
 
-namespace BirdsiteLive.Pipeline.Contracts
+namespace BirdsiteLive.Pipeline.Contracts;
+
+public interface ISendTweetsToFollowersProcessor
 {
-    public interface ISendTweetsToFollowersProcessor
-    {
-        Task<UserWithDataToSync> ProcessAsync(UserWithDataToSync userWithTweetsToSync, CancellationToken ct);
-    }
+    Task<UserWithDataToSync> ProcessAsync(UserWithDataToSync userWithTweetsToSync, CancellationToken ct);
 }

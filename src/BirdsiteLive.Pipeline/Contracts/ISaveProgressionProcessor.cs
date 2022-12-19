@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using BirdsiteLive.Pipeline.Models;
 
-namespace BirdsiteLive.Pipeline.Contracts
+namespace BirdsiteLive.Pipeline.Contracts;
+
+public interface ISaveProgressionProcessor
 {
-    public interface ISaveProgressionProcessor
-    {
-        Task ProcessAsync(UserWithDataToSync userWithTweetsToSync, CancellationToken ct);
-    }
+    Task ProcessAsync(UserWithDataToSync userWithTweetsToSync, CancellationToken ct);
 }

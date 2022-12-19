@@ -36,25 +36,21 @@ namespace BirdsiteLive.Twitter.Extractors
 
         private string ExtractRetweetUrl(ITweet tweet)
         {
-            if (tweet.IsRetweet)
-            {
-                if (tweet.RetweetedTweet != null)
-                {
-                    return tweet.RetweetedTweet.Url;
-                }
-                if (tweet.FullText.Contains("https://t.co/"))
-                {
-                    var retweetId = tweet.FullText.Split(new[] { "https://t.co/" }, StringSplitOptions.RemoveEmptyEntries).Last();
-                    return $"https://t.co/{retweetId}";
-                }
-            }
+            if (!tweet.IsRetweet)
+                return null;
+            if (tweet.RetweetedTweet != null)
+                return tweet.RetweetedTweet.Url;
+            if (!tweet.FullText.Contains("https://t.co/"))
+                return null;
+            var retweetId = tweet.FullText.Split(new[] { "https://t.co/" },
+                StringSplitOptions.RemoveEmptyEntries).Last();
+            return $"https://t.co/{retweetId}";
 
-            return null;
         }
 
-        public string ExtractMessage(ITweet tweet)
+        private static string ExtractMessage(ITweet tweet)
         {
-            var message = tweet.FullText;
+            string message = tweet.FullText;
             var tweetUrls = tweet.Media.Select(x => x.URL).Distinct();
             
             if (tweet.IsRetweet && message.StartsWith("RT") && tweet.RetweetedTweet != null)
@@ -63,33 +59,32 @@ namespace BirdsiteLive.Twitter.Extractors
                 tweetUrls = tweet.RetweetedTweet.Media.Select(x => x.URL).Distinct();
             }
 
-            foreach (var tweetUrl in tweetUrls)
+            foreach (string tweetUrl in tweetUrls)
             {
-                if(tweet.IsRetweet)
-                    message = tweet.RetweetedTweet.FullText.Replace(tweetUrl, string.Empty).Trim();
-                else 
-                    message = message.Replace(tweetUrl, string.Empty).Trim();
+                message = tweet.IsRetweet 
+                    ? tweet.RetweetedTweet?.FullText.Replace(tweetUrl, string.Empty).Trim() 
+                    : message?.Replace(tweetUrl, string.Empty).Trim();
             }
 
             if (tweet.QuotedTweet != null) message = $"[Quote {{RT}}]{Environment.NewLine}{message}";
             if (tweet.IsRetweet)
             {
-                if (tweet.RetweetedTweet != null && !message.StartsWith("RT"))
+                if (tweet.RetweetedTweet != null && message != null && !message.StartsWith("RT"))
                     message = $"[{{RT}} @{tweet.RetweetedTweet.CreatedBy.ScreenName}]{Environment.NewLine}{message}";
-                else if (tweet.RetweetedTweet != null && message.StartsWith($"RT @{tweet.RetweetedTweet.CreatedBy.ScreenName}:"))
+                else if (tweet.RetweetedTweet != null && message != null && message.StartsWith($"RT @{tweet.RetweetedTweet.CreatedBy.ScreenName}:"))
                     message = message.Replace($"RT @{tweet.RetweetedTweet.CreatedBy.ScreenName}:", $"[{{RT}} @{tweet.RetweetedTweet.CreatedBy.ScreenName}]{Environment.NewLine}");
                 else
-                    message = message.Replace("RT", "[{{RT}}]");
+                    message = message?.Replace("RT", "[{{RT}}]");
             }
 
             // Expand URLs
             foreach (var url in tweet.Urls.OrderByDescending(x => x.URL.Length))
-                message = message.Replace(url.URL, url.ExpandedURL);
+                message = message?.Replace(url.URL, url.ExpandedURL);
 
             return message;
         }
 
-        public ExtractedMedia[] ExtractMedia(ITweet tweet)
+        private static ExtractedMedia[] ExtractMedia(ITweet tweet)
         {
             var media = tweet.Media;
             if (tweet.IsRetweet && tweet.RetweetedTweet != null)
@@ -98,14 +93,14 @@ namespace BirdsiteLive.Twitter.Extractors
             var result = new List<ExtractedMedia>();
             foreach (var m in media)
             {
-                var mediaUrl = GetMediaUrl(m);
-                var mediaType = GetMediaType(m.MediaType, mediaUrl);
+                string mediaUrl = GetMediaUrl(m);
+                string mediaType = GetMediaType(m.MediaType, mediaUrl);
                 if (mediaType == null) continue;
 
                 var att = new ExtractedMedia
                 {
                     MediaType = mediaType,
-                    Url = mediaUrl
+                    Url = mediaUrl,
                 };
                 result.Add(att);
             }
@@ -113,47 +108,33 @@ namespace BirdsiteLive.Twitter.Extractors
             return result.ToArray();
         }
 
-        public string GetMediaUrl(IMediaEntity media)
-        {
-            switch (media.MediaType)
+        private static string GetMediaUrl(IMediaEntity media) =>
+            media.MediaType switch
             {
-                case "photo": return media.MediaURLHttps;
-                case "animated_gif": return media.VideoDetails.Variants[0].URL;
-                case "video": return media.VideoDetails.Variants.OrderByDescending(x => x.Bitrate).First().URL;
-                default: return null;
-            }
-        }
+                "photo" => media.MediaURLHttps,
+                "animated_gif" => media.VideoDetails.Variants[0].URL,
+                "video" => media.VideoDetails.Variants.OrderByDescending(x => x.Bitrate).First().URL,
+                _ => null
+            };
 
-        public string GetMediaType(string mediaType, string mediaUrl)
-        {
-            switch (mediaType)
+        private static string GetMediaType(string mediaType, string mediaUrl) =>
+            mediaType switch
             {
-                case "photo":
-                    var pExt = Path.GetExtension(mediaUrl);
-                    switch (pExt)
-                    {
-                        case ".jpg":
-                        case ".jpeg":
-                            return "image/jpeg";
-                        case ".png":
-                            return "image/png";
-                    }
-                    return null;
-
-                case "animated_gif":
-                    var vExt = Path.GetExtension(mediaUrl);
-                    switch (vExt)
-                    {
-                        case ".gif":
-                            return "image/gif";
-                        case ".mp4":
-                            return "video/mp4";
-                    }
-                    return "image/gif";
-                case "video":
-                    return "video/mp4";
-            }
-            return null;
-        }
+                "photo" => Path.GetExtension(mediaUrl) switch
+                {
+                    ".jpg" => "image/jpeg",
+                    ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    _ => null
+                },
+                "animated_gif" => Path.GetExtension(mediaUrl) switch
+                {
+                    ".gif" => "image/gif",
+                    ".mp4" => "video/mp4",
+                    _ => "image/gif"
+                },
+                "video" => "video/mp4",
+                _ => null
+            };
     }
 }

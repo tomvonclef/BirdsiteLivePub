@@ -9,71 +9,70 @@ using BirdsiteLive.Pipeline.Processors;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace BirdsiteLive.Pipeline.Tests.Processors
+namespace BirdsiteLive.Pipeline.Tests.Processors;
+
+[TestClass]
+public class RetrieveFollowersProcessorTests
 {
-    [TestClass]
-    public class RetrieveFollowersProcessorTests
+    [TestMethod]
+    public async Task ProcessAsync_Test()
     {
-        [TestMethod]
-        public async Task ProcessAsync_Test()
+        #region Stubs
+        const int userId1 = 1;
+        const int userId2 = 2;
+
+        var users = new List<UserWithDataToSync>
         {
-            #region Stubs
-            var userId1 = 1;
-            var userId2 = 2;
-
-            var users = new List<UserWithDataToSync>
+            new()
             {
-                new UserWithDataToSync
+                User = new SyncTwitterUser
                 {
-                    User = new SyncTwitterUser
-                    {
-                        Id = userId1
-                    }
-                },
-                new UserWithDataToSync
-                {
-                    User = new SyncTwitterUser
-                    {
-                        Id = userId2
-                    }
+                    Id = userId1
                 }
-            };
-
-            var followersUser1 = new List<Follower>
+            },
+            new()
             {
-                new Follower(),
-                new Follower(),
-            };
-            var followersUser2 = new List<Follower>
-            {
-                new Follower(),
-                new Follower(),
-                new Follower(),
-            };
-            #endregion
+                User = new SyncTwitterUser
+                {
+                    Id = userId2
+                }
+            }
+        };
 
-            #region Mocks
-            var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
-            followersDalMock
-                .Setup(x => x.GetFollowersAsync(It.Is<int>(y => y == userId1)))
-                .ReturnsAsync(followersUser1.ToArray());
+        var followersUser1 = new List<Follower>
+        {
+            new(),
+            new(),
+        };
+        var followersUser2 = new List<Follower>
+        {
+            new(),
+            new(),
+            new(),
+        };
+        #endregion
 
-            followersDalMock
-                .Setup(x => x.GetFollowersAsync(It.Is<int>(y => y == userId2)))
-                .ReturnsAsync(followersUser2.ToArray());
-            #endregion
+        #region Mocks
+        var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
+        followersDalMock
+            .Setup(x => x.GetFollowersAsync(It.Is<int>(y => y == userId1)))
+            .ReturnsAsync(followersUser1.ToArray());
 
-            var processor = new RetrieveFollowersProcessor(followersDalMock.Object);
-            var result = (await processor.ProcessAsync(users.ToArray(), CancellationToken.None)).ToList();
+        followersDalMock
+            .Setup(x => x.GetFollowersAsync(It.Is<int>(y => y == userId2)))
+            .ReturnsAsync(followersUser2.ToArray());
+        #endregion
 
-            #region Validations
-            Assert.IsNotNull(result);
-            Assert.AreEqual(2, result.Count);
-            Assert.AreEqual(2, result.First(x => x.User.Id == userId1).Followers.Length);
-            Assert.AreEqual(3, result.First(x => x.User.Id == userId2).Followers.Length);
+        var processor = new RetrieveFollowersProcessor(followersDalMock.Object);
+        var result = (await processor.ProcessAsync(users.ToArray(), CancellationToken.None)).ToList();
 
-            followersDalMock.VerifyAll();
-            #endregion
-        }
+        #region Validations
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2, result.Count);
+        Assert.AreEqual(2, result.First(x => x.User.Id == userId1).Followers.Length);
+        Assert.AreEqual(3, result.First(x => x.User.Id == userId2).Followers.Length);
+
+        followersDalMock.VerifyAll();
+        #endregion
     }
 }

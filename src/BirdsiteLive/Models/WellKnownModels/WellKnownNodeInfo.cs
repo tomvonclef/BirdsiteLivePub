@@ -1,7 +1,6 @@
-﻿namespace BirdsiteLive.Models.WellKnownModels
+﻿namespace BirdsiteLive.Models.WellKnownModels;
+
+public class WellKnownNodeInfo
 {
-    public class WellKnownNodeInfo
-    {
-        public Link[] links { get; set; }
-    }
+    public Link[] links { get; set; }
 }

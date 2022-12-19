@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using BirdsiteLive.Common.Settings;
-using BirdsiteLive.Statistics.Domain;
 using BirdsiteLive.Twitter.Models;
+using BirdsiteLive.Twitter.Statistics;
 using BirdsiteLive.Twitter.Tools;
 using Microsoft.Extensions.Logging;
 using Tweetinvi;

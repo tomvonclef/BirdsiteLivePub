@@ -1,7 +1,6 @@
-﻿namespace BirdsiteLive.Models.WellKnownModels
+﻿namespace BirdsiteLive.Models.WellKnownModels;
+
+public class Metadata
 {
-    public class Metadata
-    {
-        public string email { get; set; }
-    }
+    public string email { get; set; }
 }

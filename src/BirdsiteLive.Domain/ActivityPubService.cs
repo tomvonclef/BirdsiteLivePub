@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using BirdsiteLive.ActivityPub;
@@ -95,14 +93,14 @@ namespace BirdsiteLive.Domain
             if (!string.IsNullOrWhiteSpace(inbox))
                 usedInbox = inbox;
 
-            var json = JsonConvert.SerializeObject(data);
+            string json = JsonConvert.SerializeObject(data);
 
             var date = DateTime.UtcNow.ToUniversalTime();
-            var httpDate = date.ToString("r");
+            string httpDate = date.ToString("r");
 
-            var digest = _cryptoService.ComputeSha256Hash(json);
+            string digest = _cryptoService.ComputeSha256Hash(json);
 
-            var signature = _cryptoService.SignAndGetSignatureHeader(date, actorUrl, targetHost, digest, usedInbox);
+            string signature = _cryptoService.SignAndGetSignatureHeader(date, actorUrl, targetHost, digest, usedInbox);
 
             var client = _httpClientFactory.CreateClient();
             var httpRequestMessage = new HttpRequestMessage

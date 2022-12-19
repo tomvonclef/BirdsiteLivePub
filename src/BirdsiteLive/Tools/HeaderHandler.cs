@@ -3,13 +3,13 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace BirdsiteLive.Tools
+namespace BirdsiteLive.Tools;
+
+public static class HeaderHandler
 {
-    public class HeaderHandler
+    public static Dictionary<string, string> RequestHeaders(IHeaderDictionary header)
     {
-        public static Dictionary<string, string> RequestHeaders(IHeaderDictionary header)
-        {
-            return header.ToDictionary<KeyValuePair<string, StringValues>, string, string>(h => h.Key.ToLowerInvariant(), h => h.Value);
-        }
+        return header.ToDictionary<KeyValuePair<string, StringValues>, string, string>(
+            h => h.Key.ToLowerInvariant(), h => h.Value);
     }
 }

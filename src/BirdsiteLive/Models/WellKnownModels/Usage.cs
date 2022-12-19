@@ -1,8 +1,7 @@
-﻿namespace BirdsiteLive.Models.WellKnownModels
+﻿namespace BirdsiteLive.Models.WellKnownModels;
+
+public class Usage
 {
-    public class Usage
-    {
-        public int localPosts { get; set; }
-        public Users users { get; set; }
-    }
+    public int localPosts { get; set; }
+    public Users users { get; set; }
 }

@@ -7,77 +7,76 @@ using BirdsiteLive.Moderation.Actions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace BirdsiteLive.Moderation.Tests.Actions
+namespace BirdsiteLive.Moderation.Tests.Actions;
+
+[TestClass]
+public class RemoveFollowerActionTests
 {
-    [TestClass]
-    public class RemoveFollowerActionTests
+    [TestMethod]
+    public async Task ProcessAsync_NoMoreFollowings()
     {
-        [TestMethod]
-        public async Task ProcessAsync_NoMoreFollowings()
+        #region Stubs
+        var follower = new Follower
         {
-            #region Stubs
-            var follower = new Follower
-            {
-                Id = 12,
-                Followings = new List<int> { 1 }
-            };
-            #endregion
+            Id = 12,
+            Followings = new List<int> { 1 }
+        };
+        #endregion
 
-            #region Mocks
-            var rejectAllFollowingsActionMock = new Mock<IRejectAllFollowingsAction>(MockBehavior.Strict);
-            rejectAllFollowingsActionMock
-                .Setup(x => x.ProcessAsync(
-                    It.Is<Follower>(y => y.Id == follower.Id)))
-                .Returns(Task.CompletedTask);
+        #region Mocks
+        var rejectAllFollowingsActionMock = new Mock<IRejectAllFollowingsAction>(MockBehavior.Strict);
+        rejectAllFollowingsActionMock
+            .Setup(x => x.ProcessAsync(
+                It.Is<Follower>(y => y.Id == follower.Id)))
+            .Returns(Task.CompletedTask);
 
-            var processDeleteUserMock = new Mock<IProcessDeleteUser>(MockBehavior.Strict);
-            processDeleteUserMock
-                .Setup(x => x.ExecuteAsync(
-                    It.Is<Follower>(y => y.Id == follower.Id)))
-                .Returns(Task.CompletedTask);
-            #endregion
+        var processDeleteUserMock = new Mock<IProcessDeleteUser>(MockBehavior.Strict);
+        processDeleteUserMock
+            .Setup(x => x.ExecuteAsync(
+                It.Is<Follower>(y => y.Id == follower.Id)))
+            .Returns(Task.CompletedTask);
+        #endregion
 
-            var action = new RemoveFollowerAction(rejectAllFollowingsActionMock.Object, processDeleteUserMock.Object);
-            await action.ProcessAsync(follower);
+        var action = new RemoveFollowerAction(rejectAllFollowingsActionMock.Object, processDeleteUserMock.Object);
+        await action.ProcessAsync(follower);
 
-            #region Validations
-            rejectAllFollowingsActionMock.VerifyAll();
-            processDeleteUserMock.VerifyAll();
-            #endregion
-        }
+        #region Validations
+        rejectAllFollowingsActionMock.VerifyAll();
+        processDeleteUserMock.VerifyAll();
+        #endregion
+    }
 
-        [TestMethod]
-        public async Task ProcessAsync_HaveFollowings()
+    [TestMethod]
+    public async Task ProcessAsync_HaveFollowings()
+    {
+        #region Stubs
+        var follower = new Follower
         {
-            #region Stubs
-            var follower = new Follower
-            {
-                Id = 12,
-                Followings = new List<int> { 1 }
-            };
-            #endregion
+            Id = 12,
+            Followings = new List<int> { 1 }
+        };
+        #endregion
 
-            #region Mocks
-            var rejectAllFollowingsActionMock = new Mock<IRejectAllFollowingsAction>(MockBehavior.Strict);
-            rejectAllFollowingsActionMock
-                .Setup(x => x.ProcessAsync(
-                    It.Is<Follower>(y => y.Id == follower.Id)))
-                .Returns(Task.CompletedTask);
+        #region Mocks
+        var rejectAllFollowingsActionMock = new Mock<IRejectAllFollowingsAction>(MockBehavior.Strict);
+        rejectAllFollowingsActionMock
+            .Setup(x => x.ProcessAsync(
+                It.Is<Follower>(y => y.Id == follower.Id)))
+            .Returns(Task.CompletedTask);
 
-            var processDeleteUserMock = new Mock<IProcessDeleteUser>(MockBehavior.Strict);
-            processDeleteUserMock
-                .Setup(x => x.ExecuteAsync(
-                    It.Is<Follower>(y => y.Id == follower.Id)))
-                .Returns(Task.CompletedTask);
-            #endregion
+        var processDeleteUserMock = new Mock<IProcessDeleteUser>(MockBehavior.Strict);
+        processDeleteUserMock
+            .Setup(x => x.ExecuteAsync(
+                It.Is<Follower>(y => y.Id == follower.Id)))
+            .Returns(Task.CompletedTask);
+        #endregion
 
-            var action = new RemoveFollowerAction(rejectAllFollowingsActionMock.Object, processDeleteUserMock.Object);
-            await action.ProcessAsync(follower);
+        var action = new RemoveFollowerAction(rejectAllFollowingsActionMock.Object, processDeleteUserMock.Object);
+        await action.ProcessAsync(follower);
 
-            #region Validations
-            rejectAllFollowingsActionMock.VerifyAll();
-            processDeleteUserMock.VerifyAll();
-            #endregion
-        }
+        #region Validations
+        rejectAllFollowingsActionMock.VerifyAll();
+        processDeleteUserMock.VerifyAll();
+        #endregion
     }
 }

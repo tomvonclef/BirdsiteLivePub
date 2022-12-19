@@ -6,205 +6,204 @@ using BirdsiteLive.Domain.BusinessUseCases;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace BirdsiteLive.Domain.Tests.BusinessUseCases
+namespace BirdsiteLive.Domain.Tests.BusinessUseCases;
+
+[TestClass]
+public class ProcessUnfollowUserTests
 {
-    [TestClass]
-    public class ProcessUnfollowUserTests
+    [TestMethod]
+    public async Task ExecuteAsync_NoFollowerFound_Test()
     {
-        [TestMethod]
-        public async Task ExecuteAsync_NoFollowerFound_Test()
+        #region Stubs
+        var username = "testest";
+        var domain = "m.s";
+        var twitterName = "handle";
+        #endregion
+
+        #region Mocks
+        var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
+        followersDalMock
+            .Setup(x => x.GetFollowerAsync(username, domain))
+            .ReturnsAsync((Follower) null);
+
+        var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
+        #endregion
+
+        var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
+        await action.ExecuteAsync(username, domain, twitterName );
+
+        #region Validations
+        followersDalMock.VerifyAll();
+        twitterUserDalMock.VerifyAll();
+        #endregion
+    }
+
+    [TestMethod]
+    public async Task ExecuteAsync_NoTwitterUserFound_Test()
+    {
+        #region Stubs
+        var username = "testest";
+        var domain = "m.s";
+        var twitterName = "handle";
+
+        var follower = new Follower
         {
-            #region Stubs
-            var username = "testest";
-            var domain = "m.s";
-            var twitterName = "handle";
-            #endregion
+            Id = 1,
+            Acct = username,
+            Host = domain,
+            Followings = new List<int>(),
+            FollowingsSyncStatus = new Dictionary<int, long>()
+        };
+        #endregion
 
-            #region Mocks
-            var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
-            followersDalMock
-                .Setup(x => x.GetFollowerAsync(username, domain))
-                .ReturnsAsync((Follower) null);
+        #region Mocks
+        var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
+        followersDalMock
+            .Setup(x => x.GetFollowerAsync(username, domain))
+            .ReturnsAsync(follower);
 
-            var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
-            #endregion
+        var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
+        twitterUserDalMock
+            .Setup(x => x.GetTwitterUserAsync(twitterName))
+            .ReturnsAsync((SyncTwitterUser)null);
+        #endregion
 
-            var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
-            await action.ExecuteAsync(username, domain, twitterName );
+        var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
+        await action.ExecuteAsync(username, domain, twitterName);
 
-            #region Validations
-            followersDalMock.VerifyAll();
-            twitterUserDalMock.VerifyAll();
-            #endregion
-        }
+        #region Validations
+        followersDalMock.VerifyAll();
+        twitterUserDalMock.VerifyAll();
+        #endregion
+    }
 
-        [TestMethod]
-        public async Task ExecuteAsync_NoTwitterUserFound_Test()
+    [TestMethod]
+    public async Task ExecuteAsync_MultiFollows_Test()
+    {
+        #region Stubs
+        var username = "testest";
+        var domain = "m.s";
+        var twitterName = "handle";
+
+        var follower = new Follower
         {
-            #region Stubs
-            var username = "testest";
-            var domain = "m.s";
-            var twitterName = "handle";
+            Id = 1,
+            Acct = username,
+            Host = domain,
+            Followings = new List<int> { 2, 3 },
+            FollowingsSyncStatus = new Dictionary<int, long> { { 2, 460 }, { 3, 563} }
+        };
 
-            var follower = new Follower
-            {
-                Id = 1,
-                Acct = username,
-                Host = domain,
-                Followings = new List<int>(),
-                FollowingsSyncStatus = new Dictionary<int, long>()
-            };
-            #endregion
-
-            #region Mocks
-            var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
-            followersDalMock
-                .Setup(x => x.GetFollowerAsync(username, domain))
-                .ReturnsAsync(follower);
-
-            var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
-            twitterUserDalMock
-                .Setup(x => x.GetTwitterUserAsync(twitterName))
-                .ReturnsAsync((SyncTwitterUser)null);
-            #endregion
-
-            var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
-            await action.ExecuteAsync(username, domain, twitterName);
-
-            #region Validations
-            followersDalMock.VerifyAll();
-            twitterUserDalMock.VerifyAll();
-            #endregion
-        }
-
-        [TestMethod]
-        public async Task ExecuteAsync_MultiFollows_Test()
+        var twitterUser = new SyncTwitterUser
         {
-            #region Stubs
-            var username = "testest";
-            var domain = "m.s";
-            var twitterName = "handle";
+            Id = 2,
+            Acct = twitterName,
+            LastTweetPostedId = 460,
+            LastTweetSynchronizedForAllFollowersId = 460
+        };
 
-            var follower = new Follower
-            {
-                Id = 1,
-                Acct = username,
-                Host = domain,
-                Followings = new List<int> { 2, 3 },
-                FollowingsSyncStatus = new Dictionary<int, long> { { 2, 460 }, { 3, 563} }
-            };
-
-            var twitterUser = new SyncTwitterUser
-            {
-                Id = 2,
-                Acct = twitterName,
-                LastTweetPostedId = 460,
-                LastTweetSynchronizedForAllFollowersId = 460
-            };
-
-            var followerList = new List<Follower>
-            {
-                new Follower(),
-                new Follower()
-            };
-            #endregion
-
-            #region Mocks
-            var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
-            followersDalMock
-                .Setup(x => x.GetFollowerAsync(username, domain))
-                .ReturnsAsync(follower);
-
-            followersDalMock
-                .Setup(x => x.UpdateFollowerAsync(
-                    It.Is<Follower>(y => !y.Followings.Contains(twitterUser.Id)
-                                         && !y.FollowingsSyncStatus.ContainsKey(twitterUser.Id))
-                ))
-                .Returns(Task.CompletedTask);
-
-            followersDalMock
-                .Setup(x => x.GetFollowersAsync(twitterUser.Id))
-                .ReturnsAsync(followerList.ToArray());
-
-            var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
-            twitterUserDalMock
-                .Setup(x => x.GetTwitterUserAsync(twitterName))
-                .ReturnsAsync(twitterUser);
-            #endregion
-
-            var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
-            await action.ExecuteAsync(username, domain, twitterName);
-
-            #region Validations
-            followersDalMock.VerifyAll();
-            twitterUserDalMock.VerifyAll();
-            #endregion
-        }
-
-        [TestMethod]
-        public async Task ExecuteAsync_CleanUp_Test()
+        var followerList = new List<Follower>
         {
-            #region Stubs
-            var username = "testest";
-            var domain = "m.s";
-            var twitterName = "handle";
+            new Follower(),
+            new Follower()
+        };
+        #endregion
 
-            var follower = new Follower
-            {
-                Id = 1,
-                Acct = username,
-                Host = domain,
-                Followings = new List<int> { 2 },
-                FollowingsSyncStatus = new Dictionary<int, long> { { 2, 460 } }
-            };
+        #region Mocks
+        var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
+        followersDalMock
+            .Setup(x => x.GetFollowerAsync(username, domain))
+            .ReturnsAsync(follower);
 
-            var twitterUser = new SyncTwitterUser
-            {
-                Id = 2,
-                Acct = twitterName,
-                LastTweetPostedId = 460,
-                LastTweetSynchronizedForAllFollowersId = 460
-            };
+        followersDalMock
+            .Setup(x => x.UpdateFollowerAsync(
+                It.Is<Follower>(y => !y.Followings.Contains(twitterUser.Id)
+                                     && !y.FollowingsSyncStatus.ContainsKey(twitterUser.Id))
+            ))
+            .Returns(Task.CompletedTask);
 
-            var followerList = new List<Follower>();
-            #endregion
+        followersDalMock
+            .Setup(x => x.GetFollowersAsync(twitterUser.Id))
+            .ReturnsAsync(followerList.ToArray());
 
-            #region Mocks
-            var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
-            followersDalMock
-                .Setup(x => x.GetFollowerAsync(username, domain))
-                .ReturnsAsync(follower);
+        var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
+        twitterUserDalMock
+            .Setup(x => x.GetTwitterUserAsync(twitterName))
+            .ReturnsAsync(twitterUser);
+        #endregion
 
-            followersDalMock
-                .Setup(x => x.DeleteFollowerAsync(
-                    It.Is<string>(y => y == username),
-                    It.Is<string>(y => y == domain)
-                    ))
-                .Returns(Task.CompletedTask);
+        var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
+        await action.ExecuteAsync(username, domain, twitterName);
 
-            followersDalMock
-                .Setup(x => x.GetFollowersAsync(twitterUser.Id))
-                .ReturnsAsync(followerList.ToArray());
+        #region Validations
+        followersDalMock.VerifyAll();
+        twitterUserDalMock.VerifyAll();
+        #endregion
+    }
 
-            var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
-            twitterUserDalMock
-                .Setup(x => x.GetTwitterUserAsync(twitterName))
-                .ReturnsAsync(twitterUser);
+    [TestMethod]
+    public async Task ExecuteAsync_CleanUp_Test()
+    {
+        #region Stubs
+        var username = "testest";
+        var domain = "m.s";
+        var twitterName = "handle";
 
-            twitterUserDalMock
-                .Setup(x => x.DeleteTwitterUserAsync(
-                    It.Is<string>(y => y == twitterName)
-                ))
-                .Returns(Task.CompletedTask);
-            #endregion
+        var follower = new Follower
+        {
+            Id = 1,
+            Acct = username,
+            Host = domain,
+            Followings = new List<int> { 2 },
+            FollowingsSyncStatus = new Dictionary<int, long> { { 2, 460 } }
+        };
 
-            var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
-            await action.ExecuteAsync(username, domain, twitterName);
+        var twitterUser = new SyncTwitterUser
+        {
+            Id = 2,
+            Acct = twitterName,
+            LastTweetPostedId = 460,
+            LastTweetSynchronizedForAllFollowersId = 460
+        };
 
-            #region Validations
-            followersDalMock.VerifyAll();
-            twitterUserDalMock.VerifyAll();
-            #endregion
-        }
+        var followerList = new List<Follower>();
+        #endregion
+
+        #region Mocks
+        var followersDalMock = new Mock<IFollowersDal>(MockBehavior.Strict);
+        followersDalMock
+            .Setup(x => x.GetFollowerAsync(username, domain))
+            .ReturnsAsync(follower);
+
+        followersDalMock
+            .Setup(x => x.DeleteFollowerAsync(
+                It.Is<string>(y => y == username),
+                It.Is<string>(y => y == domain)
+            ))
+            .Returns(Task.CompletedTask);
+
+        followersDalMock
+            .Setup(x => x.GetFollowersAsync(twitterUser.Id))
+            .ReturnsAsync(followerList.ToArray());
+
+        var twitterUserDalMock = new Mock<ITwitterUserDal>(MockBehavior.Strict);
+        twitterUserDalMock
+            .Setup(x => x.GetTwitterUserAsync(twitterName))
+            .ReturnsAsync(twitterUser);
+
+        twitterUserDalMock
+            .Setup(x => x.DeleteTwitterUserAsync(
+                It.Is<string>(y => y == twitterName)
+            ))
+            .Returns(Task.CompletedTask);
+        #endregion
+
+        var action = new ProcessUndoFollowUser(followersDalMock.Object, twitterUserDalMock.Object);
+        await action.ExecuteAsync(username, domain, twitterName);
+
+        #region Validations
+        followersDalMock.VerifyAll();
+        twitterUserDalMock.VerifyAll();
+        #endregion
     }
 }

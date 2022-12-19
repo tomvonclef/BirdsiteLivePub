@@ -33,7 +33,7 @@ namespace BirdsiteLive.Domain.Statistics
         }
         #endregion
 
-        private void OnTimeResetEvent(object sender, ElapsedEventArgs e)
+        private static void OnTimeResetEvent(object sender, ElapsedEventArgs e)
         {
             _lastDescriptionMentionsExtracted = _descriptionMentionsExtracted;
             _lastStatusMentionsExtracted = _statusMentionsExtracted;

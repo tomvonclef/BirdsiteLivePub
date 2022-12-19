@@ -3,22 +3,22 @@ using BirdsiteLive.Common.Settings;
 using BirdsiteLive.Twitter.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace BirdsiteLive.Domain.Tests
-{
-    [TestClass]
-    public class StatusServiceTests
-    {
-        private readonly InstanceSettings _settings;
+namespace BirdsiteLive.Domain.Tests;
 
-        #region Ctor
-        public StatusServiceTests()
+[TestClass]
+public class StatusServiceTests
+{
+    private readonly InstanceSettings _settings;
+
+    #region Ctor
+    public StatusServiceTests()
+    {
+        _settings = new InstanceSettings
         {
-            _settings = new InstanceSettings
-            {
-                Domain = "domain.name"
-            };
-        }
-        #endregion
+            Domain = "domain.name"
+        };
+    }
+    #endregion
 
 //        [TestMethod]
 //        public void ExtractMentionsTest()
@@ -44,5 +44,4 @@ namespace BirdsiteLive.Domain.Tests
 
 //            #endregion
 //        }
-    }
 }
